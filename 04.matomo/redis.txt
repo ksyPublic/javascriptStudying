@@ -1,0 +1,97 @@
+1. 네임스페이스 및 사용문
+# 이 코드는 네임스페이스 안에 존재함을 의미한다.
+namespace Piwik\Plugins\QueuedTracking\Queue\Backend;
+
+# 인터페이스를 가져온다.
+use Piwik\Log;
+use Piwik\Plugins\QueuedTracking\Queue\Backend;
+
+2. 클래스 정의
+# Redis 클래스는 Backend 인터페이스를 구현하며, Backend 인터페이스에서 선언된 메서드에 대한 구현을 제공합니다.
+
+class Redis implements Backend
+{
+    // 클래스 구현...
+}
+
+3. 프로퍼티
+# 이러한 프로퍼티는 Redis 연결과 관련된 정보를 보유합니다. Redis 클라이언트($redis), 호스트, 포트, 연결 타임아웃, 비밀번호 및 데이터베이스 번호와 관련이 있습니다.
+protected $redis;
+protected $host;
+protected $port;
+protected $timeout;
+protected $password;
+protected $database;
+
+4. 생성자 및 연결 메서드
+# 이러한 메서드는 연결 및 연결 해제 로직을 처리합니다. connectIfNeeded는 연결이 필요한지 확인하고 필요한 경우 연결을 수립합니다.
+  connect는 새로운 Redis 인스턴스를 생성하고 지정된 호스트 및 포트에 연결합니다. disconnect는 연결을 닫으며 isConnected는 연결이 있는지 확인합니다.
+
+public function connectIfNeeded() { /* ... */ }
+protected function connect() { /* ... */ }
+private function disconnect() { /* ... */ }
+private function isConnected() { /* ... */ }
+
+5. 주요 연결 및 구성 메서드
+# setConfig는 Redis 연결에 대한 구성 매개변수를 설정하고, setDatabase는 선택할 데이터베이스 번호를 설정합니다.
+
+public function setConfig($host, $port, $timeout, $password) { /* ... */ }
+public function setDatabase($database) { /* ... */ }
+
+6. Redis 상호 작용 메서드
+# 여러 메서드가 Redis 서버와 상호 작용합니다. 
+testConnection, getServerVersion, getLastError, getMemoryStats, getTimeToLive, appendValuesToList,
+getFirstXValuesFromList, removeFirstXValuesFromList, hasAtLeastXRequestsQueued, getNumValuesInList, setIfNotExists,
+delete, deleteIfKeyHasValue, getKeysMatchingPattern, expireIfKeyHasValue, get, flushAll와 같이 다양한 작업을 수행합니다.
+
+7. 내부 메서드
+# 이러한 메서드는 내부적으로 표시되어 있으며 테스트 목적으로 사용됩니다. getConnection은 내부 Redis 연결 객체를 반환하고 delete는 키를 삭제합니다.
+
+/**
+ * @internal for tests only
+ * @return \Redis
+ */
+public function getConnection() { /* ... */ }
+
+/**
+ * @internal for tests only
+ */
+public function delete($key) { /* ... */ }
+
+8. 스크립트 실행 메서드
+# 이 메서드는 eval 명령을 사용하여 Redis 서버에서 Lua 스크립트를 실행합니다.
+protected function evalScript($script, $keys, $args) { /* ... */ }
+
+9. 기타 유틸리티 메서드
+# 이 메서드는 keys 명령을 사용하여 지정된 패턴과 일치하는 키를 검색합니다.
+public function getKeysMatchingPattern($pattern) { /* ... */ }
+
+10. 게터 메서드
+# 이러한 메서드는 마지막 오류, 메모리 통계 및 키와 관련된 값과 같은 특정 정보를 검색합니다.
+public function getLastError() { /* ... */ }
+public function getMemoryStats() { /* ... */ }
+public function get($key) { /* ... */ }
+
+
+Redis
+Redis 큐는 메시지 큐 또는 작업 대기열을 구현하는 데 사용됩니다.
+메시지 큐는 시스템 간 또는 컴포넌트 간에 비동기식 통신을 지원하여 분산 시스템에서 작업을 조율하고 처리 속도를 최적화하는 데 도움이 됩니다.
+
+Redis 큐는 일반적으로 다음과 같은 주요 기능을 수행합니다:
+
+비동기 작업 처리:
+메시지 큐는 작업을 비동기적으로 처리할 수 있게 해주어 응답 시간을 최적화하고 시스템 성능을 향상시킵니다. 클라이언트가 작업을 큐에 추가하면, 다른 컴포넌트가 그 작업을 가져와서 비동기적으로 처리할 수 있습니다.
+
+작업 분산:
+여러 작업자가 메시지 큐에서 작업을 가져와 동시에 처리할 수 있습니다. 이는 시스템의 확장성을 향상시키고 부하를 분산시키는 데 도움이 됩니다.
+
+작업 순서 보장:
+큐에서 작업은 보통 FIFO(First-In-First-Out) 방식으로 처리됩니다. 따라서 작업을 큐에 추가한 순서대로 처리됩니다.
+
+비동기 통신:
+시스템 구성 요소 간에 메시지 큐를 사용하여 비동기식 통신이 가능합니다. 이는 각 컴포넌트가 독립적으로 작동할 수 있게 하고, 서비스 간의 결합도를 낮추어 유지보수 및 개발을 단순화합니다.
+
+작업 실패 처리 및 재시도:
+메시지 큐는 작업 처리 중에 예외가 발생하거나 실패할 경우 이를 처리하고, 필요한 경우 재시도할 수 있는 메커니즘을 제공합니다.
+
+Redis는 메모리 기반의 키-값 저장소로서 속도가 빠르기 때문에 메시지 큐로 사용하기에 적합합니다. 주로 Redis의 List 데이터 타입을 활용하여 큐를 구현하며, 작업을 추가하고 가져오는 데 사용됩니다. Redis 큐를 사용하여 작업을 수행하고 결과를 다른 시스템으로 전송하는 등 다양한 응용 프로그램에서 활용됩니다.
